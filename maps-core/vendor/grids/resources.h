@@ -38,7 +38,6 @@ typedef uint8_t ResourceId;
 
 extern const prog_char* const string_table[];
 
-extern const prog_uint16_t* const lookup_table_table[];
 
 extern const prog_uint32_t* const lookup_table32_table[];
 

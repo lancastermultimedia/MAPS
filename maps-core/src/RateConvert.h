@@ -13,6 +13,12 @@
 
 namespace maps {
 
+/** MSVC's <cmath> does not define M_PI unless _USE_MATH_DEFINES is set before
+    the include, and relying on a macro that exists on two of three toolchains
+    is how a build goes green twice and red once. */
+constexpr double kPi = 3.14159265358979323846;
+
+
 /** One biquad section, transposed direct form II. */
 struct Biquad
 {
@@ -21,7 +27,7 @@ struct Biquad
 
     void setLowpass (double fc, double fs, double q) noexcept
     {
-        const double w0    = 2.0 * M_PI * fc / fs;
+        const double w0    = 2.0 * kPi * fc / fs;
         const double cosw0 = std::cos (w0);
         const double alpha = std::sin (w0) / (2.0 * q);
         const double b0n   = (1.0 - cosw0) * 0.5;

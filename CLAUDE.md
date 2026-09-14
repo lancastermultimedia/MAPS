@@ -80,6 +80,39 @@ here, and all three were found by running the code rather than reading it.
    mark the taper or the detent, or the first person to turn that knob will
    think the box is broken.
 
+## Windows, and how to catch it without a Windows machine
+
+Émilie's code was written for GCC on ARM, and three things in it are GCC
+extensions that MSVC rejects. All three built happily on macOS and Linux and
+turned the first Windows CI run red:
+
+1. **`M_PI`.** MSVC's `<cmath>` does not define it without `_USE_MATH_DEFINES`.
+   `maps::kPi` in `RateConvert.h` now, because a macro that exists on two
+   toolchains out of three is a build that goes green twice and red once.
+2. **`__attribute__((always_inline))`** in `stmlib/utils/dsp.h`, which is
+   reached through `clouds/dsp/audio_buffer.h`. A `#define __attribute__(x)`
+   shim guarded to `_MSC_VER`.
+3. **A zero-sized array**, `grids::lookup_table_table`. GCC allows it; MSVC
+   says C2466. It only ever fed the `ResourcesManager` this port dropped, so
+   it is deleted.
+
+Most of that class of problem can be found from any machine:
+
+```bash
+g++ -std=c++17 -fsyntax-only -pedantic-errors -DTEST=1 \
+    -Imaps-core/include -Imaps-core/src -Imaps-core/vendor -Wno-narrowing \
+    maps-core/src/MapsEngine.cc maps-core/vendor/**/*.cc
+```
+
+`-pedantic-errors` is what found the zero-sized array. It will not find
+`M_PI` or `__attribute__` — those are grep jobs — but it catches VLAs, case
+ranges, compound literals and the rest of the GNU-only vocabulary. Run it
+before pushing anything that touches the vendored tree.
+
+Windows macro traps are worth one grep too: `small`, `near`, `far`,
+`interface`, `min`, `max` are all `#define`s in the Windows headers, and an
+identifier with one of those names compiles everywhere else.
+
 ## Test at the layer the bug lives in
 
 Two layers, and they catch different things.

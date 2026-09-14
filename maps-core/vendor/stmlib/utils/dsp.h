@@ -32,6 +32,16 @@
 
 #include "stmlib/stmlib.h"
 
+// LOCAL MODIFICATION (MAPS): this header decorates its interpolators with
+// __attribute__((always_inline)), which MSVC does not understand. Everything
+// below is declared `inline` anyway, so dropping the attribute costs a hint
+// and nothing else. Scoped to MSVC so the GCC and Clang builds are untouched.
+#ifdef _MSC_VER
+  #ifndef __attribute__
+    #define __attribute__(x)
+  #endif
+#endif
+
 namespace stmlib {
 
 inline int16_t Interpolate824(const int16_t* table, uint32_t phase)

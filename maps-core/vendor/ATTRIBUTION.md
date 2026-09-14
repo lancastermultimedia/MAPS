@@ -36,8 +36,21 @@ exist anywhere else. The port is deliberately minimal:
   `DISALLOW_COPY_AND_ASSIGN`, `U8Mix`, `U8U8Mul` and `U8U8MulShift8` are
   reimplemented.
 
-`pattern_generator.cc` and `resources.cc` — the drum maps and the evaluator,
-which is where the musical behaviour lives — are byte-for-byte upstream.
+- `resources.cc` no longer defines the empty `lookup_table_table`, and
+  `resources.h` no longer declares it. It existed only to feed the
+  `ResourcesManager` this port dropped, and a zero-sized array is a GCC
+  extension that MSVC rejects outright.
+- `pattern_generator` had every member `static` and drew CHAOS from avrlib's
+  one global PRNG. Both are now per-instance, because a plugin can be loaded
+  more than once in a process.
+
+The drum maps and the evaluator — where the musical behaviour lives — are
+otherwise byte-for-byte upstream.
+
+**`stmlib/utils/dsp.h`** — a `#define __attribute__(x)` shim, guarded to
+`_MSC_VER`. The file decorates its interpolators with
+`__attribute__((always_inline))`, which MSVC does not understand; they are
+declared `inline` anyway, so dropping the attribute costs a hint.
 
 ## Why `TEST` is defined for this library
 

@@ -34,8 +34,10 @@ const prog_char* const string_table[] = {
 
 
 
-const prog_uint16_t* const lookup_table_table[] = {
-};
+// LOCAL MODIFICATION (MAPS): the empty `lookup_table_table` is gone. It only
+// ever existed to feed avrlib's ResourcesManager, which this port does not
+// use, and a zero-sized array is a GCC extension that MSVC rejects outright
+// (C2466). Nothing referenced it.
 
 const prog_uint32_t lut_res_euclidean[] PROGMEM = {
        0,      0,      0,      0,      0,      0,      0,      0,
