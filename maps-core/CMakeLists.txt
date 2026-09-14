@@ -57,10 +57,17 @@ target_compile_definitions (maps_core PRIVATE TEST=1)
 target_compile_features (maps_core PUBLIC cxx_std_17)
 set_target_properties (maps_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-# Upstream is warning-clean on its own terms but not on ours, and these two
-# would otherwise bury anything worth reading in the core's own code.
+# Upstream is warning-clean on its own terms but not on ours, and these would
+# otherwise bury anything worth reading in the core's own code.
 if (MSVC)
-    target_compile_options (maps_core PRIVATE /wd4244 /wd4305 /wd4838 /wd4996)
+    target_compile_options (maps_core PRIVATE /wd4244 /wd4305 /wd4838 /wd4996 /bigobj)
+
+    # Mutable's oscillators use M_PI, which MSVC's <cmath> only defines when
+    # this is set before the include. As a compiler-level definition it
+    # applies to the whole translation unit, which is what the vendored
+    # headers need. /bigobj above is insurance for the resource tables:
+    # plaits/resources.cc alone is 372 KB of source.
+    target_compile_definitions (maps_core PRIVATE _USE_MATH_DEFINES)
 else()
     target_compile_options (maps_core PRIVATE -Wno-narrowing -Wno-unused-function)
 endif()

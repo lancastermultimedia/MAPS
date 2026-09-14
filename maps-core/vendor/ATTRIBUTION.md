@@ -47,6 +47,13 @@ exist anywhere else. The port is deliberately minimal:
 The drum maps and the evaluator — where the musical behaviour lives — are
 otherwise byte-for-byte upstream.
 
+**`plaits/dsp/fm/algorithms.h`** — four explicit-specialisation declarations
+of static const data members are hidden behind `#ifndef _MSC_VER`. They are
+declarations by the standard, but MSVC reads them as definitions of const
+objects with no initialiser (C2737), and the `extern` that would settle it is
+rejected by GCC and Clang. MSVC resolves the members at link time from
+`algorithms.cc` instead; GCC and Clang see upstream unchanged.
+
 **`stmlib/utils/dsp.h`** — a `#define __attribute__(x)` shim, guarded to
 `_MSC_VER`. The file decorates its interpolators with
 `__attribute__((always_inline))`, which MSVC does not understand; they are

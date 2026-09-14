@@ -95,6 +95,21 @@ turned the first Windows CI run red:
 3. **A zero-sized array**, `grids::lookup_table_table`. GCC allows it; MSVC
    says C2466. It only ever fed the `ResourcesManager` this port dropped, so
    it is deleted.
+4. **`M_PI` again, in the vendored oscillators** — four files use it. Fixing
+   our own call site was not enough; `maps_core` now defines
+   `_USE_MATH_DEFINES` on MSVC, which is what makes `<cmath>` declare it.
+5. **Explicit specialisations of static const data members** in
+   `plaits/dsp/fm/algorithms.h`. By the standard those are *declarations*;
+   MSVC reads them as definitions of const objects with no initialiser and
+   stops with C2737. `extern` would say what is meant and both GCC and Clang
+   reject it outright, so there is no spelling all three take. The four lines
+   are hidden behind `#ifndef _MSC_VER`: the members are declared in-class
+   with a complete type, so MSVC emits an ordinary external reference and the
+   definitions in `algorithms.cc` satisfy it at link time.
+
+`/bigobj` is set for the same target as insurance — `plaits/resources.cc` is
+372 KB of tables, and MSVC's section limit is the sort of thing that only
+shows up on someone else's machine.
 
 Most of that class of problem can be found from any machine:
 
@@ -112,6 +127,11 @@ before pushing anything that touches the vendored tree.
 Windows macro traps are worth one grep too: `small`, `near`, `far`,
 `interface`, `min`, `max` are all `#define`s in the Windows headers, and an
 identifier with one of those names compiles everywhere else.
+
+The lesson from doing this twice: **fix the class of problem, not the
+instance.** Round one fixed our own `M_PI` and left four vendored ones
+standing, which cost a second CI round trip. When one of these turns up,
+grep the whole tree for it before pushing.
 
 ## Test at the layer the bug lives in
 

@@ -195,6 +195,21 @@ class Algorithms {
   DISALLOW_COPY_AND_ASSIGN(Algorithms);
 };
 
+// LOCAL MODIFICATION (MAPS): these four lines are hidden from MSVC.
+//
+// By the standard an explicit specialisation of a static data member without
+// an initialiser is a DECLARATION, not a definition. GCC and Clang read them
+// that way; MSVC reads them as definitions of const objects with no
+// initialiser and stops with C2737. Adding `extern` is the obvious fix and is
+// rejected by both of the other two ("explicit specialisation cannot have a
+// storage class"), so there is no spelling all three accept.
+//
+// Hiding them from MSVC costs nothing: the members are declared inside the
+// class with a complete type, so MSVC emits an ordinary external reference
+// and the definitions in algorithms.cc satisfy it at link time. GCC and Clang
+// keep the declarations and stay exactly as upstream.
+#ifndef _MSC_VER
+
 /* static */
 template<> const uint8_t Algorithms<4>::opcodes_[][4];  // From DX100
 
@@ -206,6 +221,8 @@ template<> const uint8_t Algorithms<6>::opcodes_[][6];  // From DX7
 
 /* static */
 template<> const Algorithms<6>::RendererSpecs Algorithms<6>::renderers_[];
+
+#endif  // _MSC_VER
 
 }  // namespace fm
 
