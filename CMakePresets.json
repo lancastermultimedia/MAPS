@@ -1,0 +1,57 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 22, "patch": 0 },
+
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    },
+
+    {
+      "name": "macos",
+      "displayName": "macOS — universal (Apple Silicon + Intel)",
+      "description": "AU, VST3 and a standalone app, installed to ~/Library on success.",
+      "inherits": "base",
+      "generator": "Ninja",
+      "cacheVariables": { "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64" },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" }
+    },
+
+    {
+      "name": "windows",
+      "displayName": "Windows — Visual Studio",
+      "description": "VST3 and a standalone app. Needs the MSVC toolchain. The generator is deliberately not pinned to a Visual Studio version - CMake picks the newest installed, which is what keeps this working as new versions ship and as CI runner images roll forward.",
+      "inherits": "base",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+
+    {
+      "name": "linux",
+      "displayName": "Linux",
+      "description": "VST3 and a standalone app.",
+      "inherits": "base",
+      "generator": "Ninja",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+    }
+  ],
+
+  "buildPresets": [
+    { "name": "macos", "configurePreset": "macos" },
+    {
+      "name": "windows",
+      "configurePreset": "windows",
+      "configuration": "Release",
+      "description": "Visual Studio is a multi-config generator, so the configuration is chosen here rather than at configure time."
+    },
+    { "name": "linux", "configurePreset": "linux" }
+  ],
+
+  "testPresets": [
+    { "name": "macos", "configurePreset": "macos", "output": { "outputOnFailure": true } },
+    { "name": "windows", "configurePreset": "windows", "configuration": "Release", "output": { "outputOnFailure": true } },
+    { "name": "linux", "configurePreset": "linux", "output": { "outputOnFailure": true } }
+  ]
+}

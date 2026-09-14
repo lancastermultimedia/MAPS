@@ -1,0 +1,83 @@
+name: build
+
+# Builds MAPS on macOS, Windows and Linux and attaches the results to the run.
+# It drives the same CMake presets a person uses locally, so there is no second
+# build recipe here to drift out of step with the one in the repo.
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: windows, os: windows-latest }
+          - { name: macos,   os: macos-14 }
+          - { name: linux,   os: ubuntu-22.04 }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libasound2-dev libx11-dev \
+            libxrandr-dev libxinerama-dev libxcursor-dev libxcomposite-dev \
+            libfreetype6-dev libcurl4-openssl-dev
+
+      - name: Ensure Ninja (macOS)
+        if: matrix.name == 'macos'
+        run: which ninja || brew install ninja
+
+      # MAPS_COPY_AFTER_BUILD is the one thing CI overrides: a build machine
+      # has no plugin folder worth installing into.
+      - name: Configure
+        run: cmake --preset ${{ matrix.name }} -DMAPS_COPY_AFTER_BUILD=OFF
+
+      # When a runner image moves to a new compiler, this is the line that
+      # tells you, instead of a bare "could not find any instance".
+      - name: Show toolchain
+        shell: bash
+        run: grep -E "CMAKE_(GENERATOR|CXX_COMPILER):" build/CMakeCache.txt || true
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.name }} --parallel 4
+
+      - name: Run engine tests
+        run: ctest --preset ${{ matrix.name }}
+
+      # A picture of the panel, every build. Cheap, and it is how a layout
+      # regression gets noticed without opening a DAW.
+      - name: Panel screenshot
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt-get install -y xvfb
+          xvfb-run -a ./build/maps-plugin/maps_gui_shot_artefacts/Release/maps_gui_shot panel.png 1.0
+
+      - name: Collect
+        shell: bash
+        run: |
+          mkdir -p out
+          for d in "build/maps-plugin/MAPS_artefacts/Release" "build/maps-plugin/MAPS_artefacts"; do
+            [ -d "$d/VST3/MAPS.vst3" ] && cp -R "$d/VST3/MAPS.vst3" out/ && break
+          done
+          if [ -d "build/maps-plugin/MAPS_artefacts/Release/AU/MAPS.component" ]; then
+            cp -R "build/maps-plugin/MAPS_artefacts/Release/AU/MAPS.component" out/
+          fi
+          cp packaging/READ-ME-FIRST.txt out/ 2>/dev/null || true
+          [ -f panel.png ] && cp panel.png out/
+          ls -R out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MAPS-${{ matrix.name }}
+          path: out/
+          if-no-files-found: error

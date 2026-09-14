@@ -1,0 +1,77 @@
+MAPS - Modular Atonal Percussion Synthesizer
+============================================
+
+A drum machine with no drum samples in it. Three synthesis voices driven by a
+topographic pattern generator, through a granular processor.
+
+
+INSTALLING
+----------
+
+macOS
+
+  Copy "MAPS.component" into:
+
+      ~/Library/Audio/Plug-Ins/Components/
+
+  and "MAPS.vst3" into:
+
+      ~/Library/Audio/Plug-Ins/VST3/
+
+  Then quit Logic (or your DAW) and open it again. Logic caches its plugin
+  scan, so it will not see a new Audio Unit until it restarts.
+
+  MAPS is an INSTRUMENT, not an effect. In Logic it is under
+  Instrument -> AU Instruments -> Lancaster Multimedia -> MAPS.
+
+Windows
+
+  Copy the whole "MAPS.vst3" FOLDER (not just the file inside it) into:
+
+      C:\Program Files\Common Files\VST3\
+
+  Windows will ask for administrator permission; that folder is shared
+  between all your plugin hosts. Then re-scan in your DAW. In REAPER:
+  Options -> Preferences -> Plug-ins -> VST -> Re-scan.
+
+
+IF YOUR SYSTEM OBJECTS
+
+  The plugin is not code-signed, so macOS Gatekeeper or Windows SmartScreen
+  may say it is from an unidentified developer. It is a plain plugin, not an
+  installer. On macOS: right-click the file, choose Open, then Open again.
+
+
+PLAYING IT
+
+  It runs on its own. Put it on an instrument track, press play, and the
+  sequencer starts. If the transport is stopped it free-runs at whatever the
+  CLOCK knob says.
+
+  MAP X and MAP Y walk through the pattern space. CHAOS loosens it. The three
+  DENSITY knobs on the diagonal decide how busy each of the three voices is.
+
+  It also takes MIDI notes alongside the sequencer: 36 is voice one, 38 is
+  voice two, 42 is voice three - the usual kick / snare / hat notes - so an
+  existing drum part in your timeline will play it without remapping.
+
+  MODULATION: the bar along the bottom of the panel opens three modulation
+  sources. Each one has a waveform, a rate, and two routes to any knob on the
+  instrument. They lock to your host's tempo by default, so a RANDOM source
+  pointed at a voice's MODEL knob picks a different drum engine every beat.
+  The presets "Shuffled Engines" and "Engine Ramp" show what that sounds like.
+
+  ONE THING WORTH KNOWING: the DENSITY knob in the granular section (bottom
+  right) has a dead spot low down in its travel where nothing comes out. That
+  is how the original module behaves and it is not a fault. If the granular
+  side goes quiet, that is the knob to check.
+
+
+WHO MADE WHAT
+
+  The three synthesis engines inside MAPS - Plaits, Clouds and Grids - were
+  designed by Emilie Gillet of Mutable Instruments, and released by her under
+  the MIT licence. MAPS rearranges them into one instrument. The interesting
+  parts are hers.
+
+  MAPS is by Lancaster Multimedia.
